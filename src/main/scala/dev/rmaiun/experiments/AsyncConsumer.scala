@@ -7,6 +7,7 @@ import fs2.kafka._
 import fs2.{ Stream => Fs2Stream }
 import org.slf4j.{ Logger, LoggerFactory }
 
+import java.util.Random
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -36,15 +37,12 @@ object AsyncConsumer extends IOApp {
     .records
     .mapAsync(4) { committable =>
       val key    = committable.record.key
+      val value  = committable.record.value
       val offset = committable.offset.offsetAndMetadata.offset()
-      if (key.toInt % 3 == 0) {
-        Clock[IO].sleep(10 seconds) *>
-          IO.delay(log.info(s"key=$key|offset=$offset|DELAYED"))
-            .as(committable.offset)
-      } else {
-        IO.delay(log.info(s"key=$key|offset=$offset"))
+      val random = new Random().nextInt(10)
+      Clock[IO].sleep(random seconds) *>
+        IO.delay(log.info(s"value=$value|offset=$offset|${committable.offset.offsets}|DELAYED=$random"))
           .as(committable.offset)
-      }
     }
     .through(commitBatchWithin(10, 15.seconds)(implicitly[Temporal[IO]]))
 

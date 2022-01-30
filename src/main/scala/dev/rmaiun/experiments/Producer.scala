@@ -31,9 +31,13 @@ object Producer extends IOApp {
     Fs2Stream
       .repeatEval(IO(s"${UUID.randomUUID().toString}"))
       .take(16)
-      .map(str => ProducerRecord("t2", String.valueOf(x.incrementAndGet()), str))
+      .map { str =>
+        val k = x.incrementAndGet()
+        println(k)
+        ProducerRecord("t2", "1", k.toString)
+      }
       .evalMap(record => producer.produce(ProducerRecords.one(record)))
-      .groupWithin(1000, 1 seconds)
+      .groupWithin(5, 1 seconds)
       .evalMap(_.sequence)
   }
 }

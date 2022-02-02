@@ -1,8 +1,8 @@
 package dev.rmaiun
-package dev.rmaiun.experiments
+package dev.rmaiun.experiments.fs2
 
 import cats.Show
-import cats.effect._
+import cats.effect.{ExitCode, IO, IOApp, Temporal}
 import cats.syntax.all._
 import fs2.kafka._
 import fs2.{Chunk, Stream => Fs2Stream}

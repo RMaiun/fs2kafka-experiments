@@ -1,5 +1,5 @@
 package dev.rmaiun
-package dev.rmaiun.experiments
+package dev.rmaiun.experiments.fs2
 
 import cats.Show
 import cats.effect._
@@ -9,7 +9,6 @@ import org.slf4j.{ Logger, LoggerFactory }
 
 import java.util.Random
 import scala.concurrent.duration._
-import scala.language.postfixOps
 
 object AsyncConsumer extends IOApp {
   val log: Logger = LoggerFactory.getLogger("dev.rmaiun.experiments.AsyncConsumer")
@@ -40,10 +39,14 @@ object AsyncConsumer extends IOApp {
       val value  = committable.record.value
       val offset = committable.offset.offsetAndMetadata.offset()
       val random = new Random().nextInt(10)
-      Clock[IO].sleep(random seconds) *>
-        IO.delay(log.info(s"value=$value|offset=$offset|${committable.offset.offsets}|DELAYED=$random"))
-          .as(committable.offset)
-    }
-    .through(commitBatchWithin(10, 15.seconds)(implicitly[Temporal[IO]]))
+      if (value == "7") {
+        Clock[IO].sleep(random.seconds) *>
+          IO.delay(log.info(s"value=$value|offset=$offset|DELAYED=$random"))
+            .as(committable.offset)
+      } else {
+        IO.raiseError(new RuntimeException("Some error"))
+      }
 
+    }
+    .through(commitBatchWithin(4, 15.seconds)(implicitly[Temporal[IO]]))
 }

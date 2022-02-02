@@ -1,13 +1,16 @@
 package dev.rmaiun
-package dev.rmaiun.experiments
-import cats.effect._
-import cats.syntax.all._
-import fs2.kafka._
-import fs2.{Chunk, Stream => Fs2Stream}
+package dev.rmaiun.experiments.fs2
 
+import cats.effect.{ExitCode, IO, IOApp}
+import fs2.Chunk
+import fs2.kafka._
+import fs2.{Stream => Fs2Stream}
+
+import scala.concurrent.duration._
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.duration._
+import cats.syntax.all._
+
 import scala.language.postfixOps
 
 object Producer extends IOApp {
@@ -31,7 +34,7 @@ object Producer extends IOApp {
     Fs2Stream
       .repeatEval(IO(s"${UUID.randomUUID().toString}"))
       .take(16)
-      .map { str =>
+      .map { _ =>
         val k = x.incrementAndGet()
         println(k)
         ProducerRecord("t2", "1", k.toString)
